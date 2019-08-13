@@ -1,0 +1,18 @@
+<h1>Insight Matrix</h1>
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla magna risus,
+commodo eu dignissim non, accumsan non tellus. Suspendisse potenti. Donec
+feugiat fermentum tellus a posuere. Fusce ultrices risus nec felis faucibus,
+quis pellentesque arcu sagittis. Nam bibendum porta enim nec consectetur. Duis
+eleifend, magna non laoreet viverra, sapien massa mollis leo, at cursus purus
+diam sed odio. Maecenas condimentum tincidunt mi nec pellentesque. Ut
+tincidunt, tortor vel finibus dictum, ex magna molestie sapien, ac fringilla
+arcu dolor in velit. Duis vitae nunc quis purus porta viverra. Phasellus
+interdum augue mauris, at imperdiet neque varius sit amet. Fusce vel turpis vel
+metus rhoncus facilisis ut convallis lacus. Vestibulum rutrum elementum mauris
+vel condimentum.</p>
+
+{% if request.user.is_authenticated %}
+  <p><a href="{% url 'logout' %}">Logout</a></p>
+{% else %}
+  <p><a href="{% url 'login' %}">Login</a> <a href="/accounts/signup/">Sign up</a></p>
+{% endif %}

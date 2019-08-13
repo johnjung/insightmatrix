@@ -2,12 +2,16 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.template import loader
+from django.views.generic import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView
 from django.views.generic.list import ListView
 from django.views import View
 from .forms import ProjectFormSet
 from .models import Project
+
+class HomePage(TemplateView):
+    template_name = 'home/homepage.html'
 
 class ProjectCreate(CreateView):
     model = Project
@@ -32,7 +36,6 @@ class ProjectCreate(CreateView):
                 project.save()
             return super(ProjectCreate, self).form_valid(form) 
 
-# this should render the svg. 
 class ProjectDetail(DetailView):
     model = Project
 
