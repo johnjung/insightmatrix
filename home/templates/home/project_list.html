@@ -1,0 +1,11 @@
+{% extends 'home/insightmatrix.html' %}
+
+{% block content %}
+  <h2>Projects</h2>
+  {% for p in project %}
+    <h3><a href="/project/{{ p.id }}/">{{ p.name }}</a></h3>
+    <p>{{ p.creation_date }}</p>
+    <p>{{ p.description }}</p>
+  {% endfor %}
+  <p><a href="/project/create">Create a new project</a>.</p>
+{% endblock %}

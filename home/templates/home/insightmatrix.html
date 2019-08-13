@@ -1,0 +1,9 @@
+<h1><a href="/">Insight Matrix</a></h1>
+{% if request.user.is_authenticated %}
+  <p>Welcome, {{ request.user.get_username }}. <a href="{% url 'logout' %}">Logout</a></p>
+{% else %}
+  <p><a href="{% url 'login' %}">Login</a> <a href="/accounts/signup/">Sign up</a></p>
+{% endif %}
+
+{% block content %}
+{% endblock %}
