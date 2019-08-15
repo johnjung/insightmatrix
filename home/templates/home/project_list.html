@@ -2,10 +2,23 @@
 
 {% block content %}
   <h2>Projects</h2>
-  {% for p in project %}
-    <h3><a href="/project/{{ p.id }}/">{{ p.name }}</a></h3>
-    <p>{{ p.creation_date }}</p>
-    <p>{{ p.description }}</p>
-  {% endfor %}
+  <div id="projects">
+    {% for p in project %}
+      <div>
+        <h3>{{ p.name }} (<a href="#">setup</a> | <a href="/project/{{ p.id }}">cluster</a>)</h3>
+        <p>Created on {{ p.creation_date|date:"n/j" }} by {{ p.user }}</p>
+        <p>{{ p.description }}</p>
+        {% if p.labels %} 
+          <p>
+            {% for label in p.labels.all %}
+              <span class="label">{{ label.name }}</span>
+            {% endfor %}
+          </p>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p>There are currently no projects.</p>
+    {% endfor %}
+  </div>
   <p><a href="/project/create">Create a new project</a>.</p>
 {% endblock %}

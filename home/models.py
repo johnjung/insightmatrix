@@ -10,7 +10,7 @@ class Project(models.Model):
     creation_date = models.DateTimeField(default=timezone.now)
 
 class Label(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="labels")
     name = models.CharField(max_length=200)
 
     class Meta:
