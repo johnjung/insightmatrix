@@ -7,4 +7,4 @@ class ProjectForm(ModelForm):
         model = Project
         fields = ['name', 'description']
 
-ProjectFormSet = inlineformset_factory(Project, Label, form=ProjectForm, fields=('name',), extra=1)
+ProjectFormSet = inlineformset_factory(Project, Label, form=ProjectForm, fields=('name',), extra=3)

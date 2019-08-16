@@ -51,6 +51,12 @@ table {
  * INSIGHT MATRIX
  */
 
+a:link,
+a:visited,
+a:hover,
+a:active {
+  color: rgb(61, 126, 154);
+}
 body {
   /* 16px / 18px */
   line-height: 1.125;

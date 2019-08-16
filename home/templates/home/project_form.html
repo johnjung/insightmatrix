@@ -5,7 +5,7 @@
   <form action="" method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <table class="table">
+    <table class="table" id="label_table">
       {{ project.management_form }}
       {% for form in project.forms %}
         {% if forloop.first %}
@@ -40,9 +40,9 @@
   <div id="item-tpl" style="display: none;">
     <tr>
       <td>
-        <input id="id_labels-0-id" type="hidden" name="labels-0-id">
-        <input id="id_labels-0-project" type="hidden" name="labels-0-project">
-        <input id="id_labels-0-name" type="text" name="labels-0-name" maxlength="200">
+        <input id="id_labels-nnnn-id" type="hidden" name="labels-nnnn-id">
+        <input id="id_labels-nnnn-project" type="hidden" name="labels-nnnn-project">
+        <input id="id_labels-nnnn-name" type="text" name="labels-nnnn-name" maxlength="200">
       </td>
     </tr>
   </div>
