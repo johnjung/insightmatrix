@@ -33,6 +33,17 @@
         </tr>
       {% endfor %}
     </table>
-    <input type="submit" value="Save"/> <a href="/">back to the list</a>
+    <input type="submit" value="Save"/> 
+    <button id="add-item" type="button">Add Label</button>
   </form>
+  <p><a href="/">back to the list</a></p>
+  <div id="item-tpl" style="display: none;">
+    <tr>
+      <td>
+        <input id="id_labels-0-id" type="hidden" name="labels-0-id">
+        <input id="id_labels-0-project" type="hidden" name="labels-0-project">
+        <input id="id_labels-0-name" type="text" name="labels-0-name" maxlength="200">
+      </td>
+    </tr>
+  </div>
 {% endblock %}
