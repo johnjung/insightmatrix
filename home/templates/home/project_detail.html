@@ -1,6 +1,13 @@
 {% extends 'home/insightmatrix.html' %}
 
 {% block content %}
+<h2>{{ project.name }}</h2>
+
+<h3>Labels</h3>
+{% for label in project.labels.all %}
+  <p>{{ label.name }}</p>
+{% endfor %}
+
 <!-- link to project_detail.css -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <svg width="700" height="700" viewbox="-100 -100 700 700">

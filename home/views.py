@@ -1,14 +1,15 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.views.generic import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic.list import ListView
 from django.views import View
-from .forms import ProjectFormSet
-from .models import Project
+from .forms import ProjectForm
+from .models import Label, Project
 
 class HomePage(TemplateView):
     template_name = 'home/homepage.html'
@@ -19,40 +20,61 @@ class HomePage(TemplateView):
         else:
             return super(HomePage, self).dispatch(request, *args, **kwargs)
 
-class ProjectCreate(CreateView):
+
+def project_create(request):
+    if request.method == "POST":
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.user = request.user
+            project.save()
+            for label in request.POST['labels'].split():
+                Label.objects.create(name=label, project=project)
+            return redirect('project_detail', pk=project.pk)
+    else:
+        form = ProjectForm()
+    return render(request, 'home/project_create.html', {'form': form})
+
+
+def project_update(request, pk=None):
+    project = get_object_or_404(Project, pk=pk)
+    if request.method == "POST":
+        form = ProjectForm(request.POST, instance=project)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.user = request.user
+            project.save()
+            form_label_names = request.POST['labels'].split()
+            # delete labels that no longer exist. 
+            Label.objects.filter(project=project).exclude(name__in=form_label_names).delete()
+
+            # add labels that are new.
+            for form_label_name in list(
+                set(form_label_names).difference(
+                    set(Label.objects.filter(project=project).values_list('name', flat=True))
+                )
+            ):
+                Label.objects.create(name=form_label_name, project=project)
+            return redirect('project_detail', pk=project.pk)
+    else:
+        form = ProjectForm(instance=project)
+    return render(
+        request, 
+        'home/project_update.html',
+        {
+            'form': form,
+            'labels': ' '.join(Label.objects.filter(project__pk=pk).values_list('name', flat=True))
+        }
+    )
+
+    
+class ProjectDetail(LoginRequiredMixin, DetailView):
+    login_url = '/accounts/login/'
     model = Project
-    fields = ['name', 'description']
-    success_url = 'project_list'
 
-    def get_context_data(self, **kwargs):
-        data = super(ProjectCreate, self).get_context_data(**kwargs)
-        if self.request.method == 'POST':
-            data['project'] = ProjectFormSet(self.request.POST)
-        else:
-            data['project'] = ProjectFormSet()
-        return data
 
-    def form_valid(self, form):
-        context = self.get_context_data()
-        project = context['project']
-        with transaction.atomic():
-            self.object = form.save(commit=False)
-            self.object.user = self.request.user
-            self.object.save()
-            if project.is_valid():
-                project.instance = self.object
-                project.save()
-            return super(ProjectCreate, self).form_valid(form) 
-
-class ProjectUpdate(UpdateView):
-    model = Project
-    fields = ['name', 'description']
-    success_url = 'project_list'
-
-class ProjectDetail(DetailView):
-    model = Project
-
-class ProjectList(ListView):
+class ProjectList(LoginRequiredMixin, ListView):
+    login_url = '/accounts/login/'
     model = Project
     context_object_name = 'project'
     paginate_by = 9

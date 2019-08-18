@@ -1,10 +1,12 @@
-from django.forms import ModelForm
-from django.forms.models import inlineformset_factory
-from .models import Label, Project
+from django import forms
+from .models import Project
 
-class ProjectForm(ModelForm):
+class ProjectForm(forms.ModelForm):
+    '''
+    name = forms.CharField(help_text='I set help text.', label='Project Name', max_length=200)
+    description = forms.CharField(label='Project Description', widget=forms.Textarea) 
+    labels = forms.CharField(label='Labels', widget=forms.Textarea)
+    '''
     class Meta:
         model = Project
-        fields = ['name', 'description']
-
-ProjectFormSet = inlineformset_factory(Project, Label, form=ProjectForm, fields=('name',), extra=3)
+        fields = ('name', 'description')

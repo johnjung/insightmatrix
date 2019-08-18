@@ -5,9 +5,15 @@ from django.utils import timezone
 
 class Project(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        editable=False,
+        null=True,
+        on_delete=models.CASCADE
+    )
     description = models.TextField(default='')
-    creation_date = models.DateTimeField(default=timezone.now)
+    creation_date = models.DateTimeField(default=timezone.now, editable=False)
 
 class Label(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="labels")
