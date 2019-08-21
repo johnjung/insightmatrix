@@ -1,4 +1,5 @@
 import itertools
+import random
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -49,18 +50,23 @@ class Project(models.Model):
         unranked_labels = all_labels.difference(ranked_labels)
 
         if ranked and unranked:
-            return itertools.combinations(all_labels)
+            return list(itertools.combinations(all_labels, 2))
         elif ranked:
-            return itertools.combinations(ranked_labels)
+            return list(itertools.combinations(ranked_labels, 2))
         elif unranked:
-            return itertools.combinations(unranked_labels)
+            return list(itertools.combinations(unranked_labels, 2))
         else:
-            return itertools.combinations(set())
+            return list(itertools.combinations(set(), 2))
 
     def get_random_unranked_label_pair(self):
-        return random.shuffle(
-            self.get_all_label_pairs(ranked=False, unranked=True)
-        )[0]
+        unranked_label_pairs = self.get_all_label_pairs(
+            ranked=False,
+            unranked=True
+        )
+        if unranked_label_pairs:
+            return random.shuffle(unranked_label_pairs)
+        else:
+            return None
 
 
 class Label(models.Model):

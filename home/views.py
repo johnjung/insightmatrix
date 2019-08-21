@@ -11,15 +11,6 @@ from django.views import View
 from .forms import ProjectForm
 from .models import Label, Project
 
-class HomePage(TemplateView):
-    template_name = 'home/homepage.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return redirect('project_list')
-        else:
-            return super(HomePage, self).dispatch(request, *args, **kwargs)
-
 
 def project_create(request):
     if request.method == "POST":
@@ -67,6 +58,7 @@ def project_update(request, pk=None):
         }
     )
 
+
 def project_detail(request, pk=None):
     # add a new similarity score to the database.
     if request.method == "POST":
@@ -83,7 +75,18 @@ def project_detail(request, pk=None):
     else:
         # display the SVG.
         raise NotImplementedError
-    
+
+
+class HomePage(TemplateView):
+    template_name = 'home/homepage.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('project_list')
+        else:
+            return super(HomePage, self).dispatch(request, *args, **kwargs)
+
+ 
 class ProjectList(LoginRequiredMixin, ListView):
     login_url = '/accounts/login/'
     model = Project
@@ -92,3 +95,7 @@ class ProjectList(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return Project.objects.filter(user=self.request.user).order_by('-creation_date')
+
+
+class SimilarityCreate(LoginRequiredMixin, CreateView):
+
