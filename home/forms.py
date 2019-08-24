@@ -10,4 +10,4 @@ class ProjectForm(forms.ModelForm):
 class SimilarityForm(forms.ModelForm):
     class Meta:
         model = Similarity
-        fields = ('label_one', 'label_two', 'score')
+        fields = ('label_one', 'label_two', 'project', 'score')

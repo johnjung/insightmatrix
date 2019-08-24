@@ -8,7 +8,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic.list import ListView
 from django.views import View
-from .forms import ProjectForm
+from .forms import ProjectForm, SimilarityForm
 from .models import Label, Project, Similarity
 
 
@@ -60,7 +60,6 @@ def project_update(request, pk=None):
 
 
 def similarity_create(request, project=None):
-    # add a new similarity score to the database.
     if request.method == "POST":
         form = SimilarityForm(request.POST)
         if form.is_valid():
@@ -69,17 +68,12 @@ def similarity_create(request, project=None):
     else:
         random_label_pair = Project.objects.get(pk=project).get_random_unranked_label_pair()
         if random_label_pair:
-            form = SimilarityForm()
-            return render(
-                request, 
-                'home/similarity_create.html',
-                {
-                    'label_one': random_label_pair[0][1],
-                    'label_one_pk': random_label_pair[0][0],
-                    'label_two': random_label_pair[1][1],
-                    'label_two_pk': random_label_pair[1][0]
-                }
-            )
+            form = SimilarityForm(initial={
+                'label_one': Label.objects.get(pk=random_label_pair[0][0]),
+                'label_two': Label.objects.get(pk=random_label_pair[1][0]),
+                'project': project
+            })
+            return render(request, 'home/similarity_create.html', {'form': form})
         else:
             return redirect('similarity_list', project=project)
 
