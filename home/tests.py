@@ -13,7 +13,7 @@ class InsightMatrixFunctionalTests(StaticLiveServerTestCase):
         cls.selenium.quit()
 
     def test_user_signs_up_for_an_account(self):
-        """When a user first goes to the site, they should see a short
+        """When a user first visits the site, they should see a short
         description of what it is. They should be able to sign up for an
         account and log in.
         """
