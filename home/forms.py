@@ -11,3 +11,8 @@ class SimilarityForm(forms.ModelForm):
     class Meta:
         model = Similarity
         fields = ('label_one', 'label_two', 'project', 'score')
+        widgets = {
+            'label_one': forms.HiddenInput(),
+            'label_two': forms.HiddenInput(),
+            'project': forms.HiddenInput()
+        }

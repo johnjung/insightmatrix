@@ -73,7 +73,11 @@ def similarity_create(request, project=None):
                 'label_two': Label.objects.get(pk=random_label_pair[1][0]),
                 'project': project
             })
-            return render(request, 'home/similarity_create.html', {'form': form})
+            return render(request, 'home/similarity_create.html', {
+                'form': form,
+                'label_one': random_label_pair[0][1],
+                'label_two': random_label_pair[1][1]
+            })
         else:
             return redirect('similarity_list', project=project)
 
