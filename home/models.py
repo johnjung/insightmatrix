@@ -64,7 +64,8 @@ class Project(models.Model):
             unranked=True
         )
         if unranked_label_pairs:
-            return random.shuffle(unranked_label_pairs)
+            random.shuffle(unranked_label_pairs)
+            return unranked_label_pairs[0]
         else:
             return None
 
@@ -80,4 +81,5 @@ class Label(models.Model):
 class Similarity(models.Model):
     label_one = models.ForeignKey(Label, on_delete=models.CASCADE, related_name="similarity_one")
     label_two = models.ForeignKey(Label, on_delete=models.CASCADE, related_name="similarity_two")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="similarity")
     score = models.FloatField()

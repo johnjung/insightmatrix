@@ -1,0 +1,20 @@
+{% extends 'home/insightmatrix.html' %}
+
+{% block content %}
+<h2>{{ project.name }}</h2>
+
+<h3>Labels</h3>
+<ul>
+{% for label in project.labels.all %}
+  <li>{{ label.name }}</li>
+{% endfor %}
+</ul>
+
+<h3>Similarity</h3>
+<ul>
+{% for similarity in project.similarity.all %}
+  <li>{{ similarity.label_one.name }} {{ similarity.label_two.name }} {{ similarity.score }}</li>
+{% endfor %}
+</ul>
+
+{% endblock %}

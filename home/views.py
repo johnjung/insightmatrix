@@ -9,7 +9,7 @@ from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic.list import ListView
 from django.views import View
 from .forms import ProjectForm
-from .models import Label, Project
+from .models import Label, Project, Similarity
 
 
 def project_create(request):
@@ -21,7 +21,7 @@ def project_create(request):
             project.save()
             for label in request.POST['labels'].split():
                 Label.objects.create(name=label, project=project)
-            return redirect('project_detail', pk=project.pk)
+            return redirect('similarity_create', project=project.pk)
     else:
         form = ProjectForm()
     return render(request, 'home/project_create.html', {'form': form})
@@ -59,22 +59,35 @@ def project_update(request, pk=None):
     )
 
 
-def project_detail(request, pk=None):
+def similarity_create(request, project=None):
     # add a new similarity score to the database.
     if request.method == "POST":
-        Similarity.objects.create(
-            label_one=Labels.objects.get(pk=int(request.POST['label_one'])),
-            label_two=Labels.objects.get(pk=int(request.POST['label_two'])),
-            score=int(request.POST['score'])
-        )
-
-    random_label_pair = Project.objects.get(pk=pk).get_random_unranked_label_pair()
-    if random_label_pair:
-        # display the pair form.
-        raise NotImplementedError
+        form = SimilarityForm(request.POST)
+        if form.is_valid():
+            similarity = form.save()
+            return redirect('similarity_create', project=project.pk)
     else:
-        # display the SVG.
-        raise NotImplementedError
+        random_label_pair = Project.objects.get(pk=project).get_random_unranked_label_pair()
+        if random_label_pair:
+            form = SimilarityForm()
+            return render(
+                request, 
+                'home/similarity_create.html',
+                {
+                    'label_one': random_label_pair[0][1],
+                    'label_one_pk': random_label_pair[0][0],
+                    'label_two': random_label_pair[1][1],
+                    'label_two_pk': random_label_pair[1][0]
+                }
+            )
+        else:
+            return redirect('similarity_list', project=project)
+
+
+def similarity_list(request, project=None):
+    return render(request, 'home/similarity_list.html', {
+        'project': Project.objects.get(pk=project)
+    })
 
 
 class HomePage(TemplateView):
@@ -95,7 +108,3 @@ class ProjectList(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return Project.objects.filter(user=self.request.user).order_by('-creation_date')
-
-
-class SimilarityCreate(LoginRequiredMixin, CreateView):
-

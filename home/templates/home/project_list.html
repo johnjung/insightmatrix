@@ -5,7 +5,7 @@
   <div id="projects">
     {% for p in project %}
       <div>
-        <h3>{{ p.name }} (<a href="/project/update/{{ p.id }}">update</a> | <a href="/project/{{ p.id }}">cluster</a>)</h3>
+        <h3>{{ p.name }} (<a href="/project/update/{{ p.id }}">update</a> | <a href="/similarity/{{ p.id }}">cluster</a>)</h3>
         <p>Created on {{ p.creation_date|date:"n/j" }} by {{ p.user }}</p>
         <p>{{ p.description }}</p>
         {% if p.labels %} 
