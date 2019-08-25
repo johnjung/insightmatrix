@@ -1,15 +1,9 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db import transaction
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template import loader
 from django.views.generic import TemplateView
-from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic.list import ListView
-from django.views import View
 from .forms import ProjectForm, SimilarityForm
-from .models import Label, Project, Similarity
+from .models import Label, Project
 
 
 def project_create(request):
@@ -60,11 +54,12 @@ def project_update(request, pk=None):
 
 
 def similarity_create(request, project=None):
+    """project is an integer, the pk."""
     if request.method == "POST":
         form = SimilarityForm(request.POST)
         if form.is_valid():
             similarity = form.save()
-            return redirect('similarity_create', project=project.pk)
+            return redirect('similarity_create', project=project)
     else:
         random_label_pair = Project.objects.get(pk=project).get_random_unranked_label_pair()
         if random_label_pair:

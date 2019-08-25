@@ -2,7 +2,6 @@ import itertools
 import random
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
@@ -26,37 +25,46 @@ class Project(models.Model):
                 ((1, 'apple'), (3, 'peach'))
             ]
         """
+        all_labels = set()
+        for label_one, label_two in itertools.combinations(
+                set(
+                    Label.objects.filter(project=self).values_list('pk', 'name')
+                ),
+                2
+            ):
+            if label_one[0] <= label_two[0]:
+                all_labels.add((
+                    (label_one[0], label_one[1]),
+                    (label_two[0], label_two[1])
+                ))
+            else:
+                all_labels.add((
+                    (label_two[0], label_two[1]),
+                    (label_one[0], label_one[1])
+                ))
 
-        all_labels = set(
-            Label.objects.filter(project=self).values_list('pk', 'name')
-        )
-        ranked_labels = set(
-            Similarity.objects.filter(
-                label_one__project=self
-            ).values_list(
-                'label_one__pk',
-                'label_one__name'
-            )
-        ).union(
-            set(
-                Similarity.objects.filter(
-                    label_two__project=self
-                ).values_list(
-                    'label_two__pk',
-                    'label_two__name'
-                )
-            )
-        )
+        ranked_labels = set()
+        for s in Similarity.objects.filter(project=self):
+            if s.label_one.pk <= s.label_two.pk:
+                ranked_labels.add((
+                    (s.label_one.pk, s.label_one.name), 
+                    (s.label_two.pk, s.label_two.name)
+                ))
+            else:
+                ranked_labels.add((
+                    (s.label_two.pk, s.label_two.name),
+                    (s.label_one.pk, s.label_one.name) 
+                ))
         unranked_labels = all_labels.difference(ranked_labels)
 
         if ranked and unranked:
-            return list(itertools.combinations(all_labels, 2))
+            return list(all_labels)
         elif ranked:
-            return list(itertools.combinations(ranked_labels, 2))
+            return list(ranked_labels)
         elif unranked:
-            return list(itertools.combinations(unranked_labels, 2))
+            return list(unranked_labels)
         else:
-            return list(itertools.combinations(set(), 2))
+            return list()
 
     def get_random_unranked_label_pair(self):
         unranked_label_pairs = self.get_all_label_pairs(
