@@ -18,7 +18,6 @@ class Project(models.Model):
     description = models.TextField(default='')
     creation_date = models.DateTimeField(default=timezone.now, editable=False)
 
-    '''
     def get_all_label_pairs(self, ranked=True, unranked=True):
         """Should return pairs, e.g.:
             [
@@ -77,7 +76,6 @@ class Project(models.Model):
             return unranked_label_pairs[0]
         else:
             return None
-    '''
 
 
 class Label(models.Model):
@@ -89,13 +87,7 @@ class Label(models.Model):
 
 
 class Similarity(models.Model):
-    labels = models.ManyToManyField(Label)
+    label_one = models.ForeignKey(Label, on_delete=models.CASCADE, related_name="similarity_one")
+    label_two = models.ForeignKey(Label, on_delete=models.CASCADE, related_name="similarity_two")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="similarity")
     score = models.FloatField()
-
-
-# bulk_create in django. 
-# similarity.label_set.add(one, two)?
-# extra fields on many-to-many relationships. 
-# https://stackoverflow.com/questions/20203806/limit-maximum-choices-of-manytomanyfield
-# this one has somethign about the m2m_changed signal to say when somethign was edited.
-
