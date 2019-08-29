@@ -144,3 +144,50 @@ div#footer {
   height: 1em;
   text-align: center;
 }
+
+/*
+ * SVG
+ */
+
+/*
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+*/
+svg {
+  font-size: 16px;
+  font-weight: normal;
+  /*margin: -400px 0 0 -375px;*/
+  /*position: relative;*/
+  /*top: 50%;*/
+  /*left: 50%;*/
+}
+text {
+  cursor: grab;
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+.rect_gray_0 {
+  fill: #fff;
+}
+.rect_gray_1 {
+  fill: #aaa;
+}
+.rect_gray_2 {
+  fill: #555;
+}
+.rect_gray_3 {
+  fill: #000;
+}

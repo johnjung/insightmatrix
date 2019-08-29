@@ -1,24 +1,332 @@
-$(document).ready(function() {
-    /*
-    $('#formset-wrapper').formset({
-        addText: 'add family member',
-        deleteText: 'remove',
-        prefix: 'familymember_set'
-    });
-    */
+var comparisons;
+var grays;
+var labels;
+var similarity;
 
-    // click to add a label...
-    $('#add-item').click(function(e) {
+// grid size.
+var grid = 20;
+
+// label width, in pixels.
+var label_width = 100;
+
+function get_comparison(comparisons, label_one, label_two) {
+    return parseFloat(comparisons[label_one][label_two]) / 3.0;
+}
+
+// a generic function to make SVG elements.
+function make_element(name, attribs) {
+    var e = document.createElementNS('http://www.w3.org/2000/svg', name);
+    for (var k in attribs) {
+         if (attribs.hasOwnProperty(k)) {
+             e.setAttribute(k, attribs[k]);
+         }
+    }
+    return e;
+}
+
+function get_mouse_event_grid_coordinates(e) {
+    var r = e.currentTarget.getBoundingClientRect();
+    var x = Math.floor((e.clientX - r.x - label_width) / grid);
+    var y = Math.floor((e.clientY - r.y - label_width) / grid);
+    if (x >= 0 && y >= 0) {
+        return {
+            'x': x,
+            'y': y
+        };
+    } else {
+        return {
+            'x': undefined,
+            'y': undefined
+        };
+    }
+}
+
+function get_mouse_event_label_index(e) {
+    var r = e.currentTarget.getBoundingClientRect();
+    var x = e.clientX - r.x;
+    var y = e.clientY - r.y;
+    if (x < 100) {
+        return Math.floor((y - 100) / grid);
+    } else if (y < 100) {
+        return Math.floor((x - 100) / grid);
+    } else {
+        return undefined;
+    }
+}
+
+function reorder_similarity(from, to) {
+    similarity.splice(to, 0, similarity.splice(from, 1)[0]);
+    for (var y = 0; y < labels.length; y++) {
+        similarity[y].splice(to, 0, similarity[y].splice(from, 1)[0]);
+    }
+}
+
+function recolor_grid() {
+    for (var y = 0; y < labels.length; y++) {
+        for (var x = 0; x < labels.length; x++) {
+            var id = 'rect_' + y + '_' + x;
+            var g = Math.round(similarity[y][x] * grays.length);
+            for (var i = 0; i < grays.length; i++) {
+                if (i == g) {
+                    document.getElementById(id).classList.add(grays[i]);
+                } else {
+                    document.getElementById(id).classList.remove(grays[i]);
+                }
+            }
+        }
+    }
+}
+
+function reorder_labels(a, b) {
+    // move element at position a to position b
+    if (a >= labels.length) {
+        var k = b - labels.length + 1;
+        while (k--) {
+            labels.push(undefined);
+        }
+    }
+    labels.splice(b, 0, labels.splice(a, 1)[0]);
+}
+
+function reposition_labels(skip_index) {
+    for (var i = 0; i < labels.length; i++) {
+        if (i != skip_index) {
+            document.getElementById('y_' + labels[i]).setAttribute('y', i * grid + y_label_offset);
+            document.getElementById('x_' + labels[i]).setAttribute('x', i * grid);
+            document.getElementById('x_' + labels[i]).setAttribute('transform', 'rotate(270, ' + i * grid + ', -5)');
+        }
+    }
+}
+
+function dragstart(e) {
+    if (e.target.getAttribute('draggable') == 'true') {
+        drag_active = true;
+        drag_element = e.target;
+        drag_element_index = labels.indexOf(drag_element.id.substring(2));
+        drag_element_initial_x = parseInt(drag_element.getAttribute('x'));
+        drag_element_initial_y = parseInt(drag_element.getAttribute('y'));
+        if (e.type === "touchstart") {
+            drag_initial_x = e.touches[0].clientX;
+            drag_initial_y = e.touches[0].clientY;
+        } else {
+            drag_initial_x = e.clientX;
+            drag_initial_y = e.clientY;
+        }
+    }
+}
+
+function dragend(e) {
+    drag_active = false;
+    if (drag_element == null) {
+        return;
+    }
+    if (drag_element.id.startsWith('y_')) {
+        var index_offset = Math.round(drag_offset_y / grid);
+        if (index_offset != 0) {
+            reorder_labels(drag_element_index, drag_element_index + index_offset);
+        }
+    } else {
+        var index_offset = Math.round(drag_offset_x / grid);
+        if (index_offset != 0) {
+            reorder_labels(drag_element_index, drag_element_index + index_offset);
+        }
+    }
+    reposition_labels(-1);
+    reorder_similarity(drag_element_index, drag_element_index + index_offset);
+    recolor_grid();
+    drag_element = drag_initial_x = drag_initial_y = drag_element_initial_x = drag_element_initial_y = null;
+}
+
+function drag(e) {
+    if (drag_active) {
         e.preventDefault();
+        if (e.type === "touchmove") {
+            drag_current_x = e.touches[0].clientX;
+            drag_current_y = e.touches[0].clientY;
+        } else {
+            drag_current_x = e.clientX;
+            drag_current_y = e.clientY;
+        }
+      
+        if (drag_element.id.startsWith('y_')) {
+            drag_offset_y = drag_current_y - drag_initial_y;
+            drag_element.setAttribute('y', drag_element_initial_y + drag_offset_y);
+        } else {
+            drag_offset_x = drag_current_x - drag_initial_x;
+            drag_element.setAttribute('x', drag_element_initial_x + drag_offset_x);
+            drag_element.setAttribute('transform', 'rotate(270, ' + String(drag_element_initial_x + drag_offset_x) + ', -5)');
+        }
+    }
+}
 
-        // get the highest number in the set so far.
-        var next_n = $('#label_table').find('tbody').find('tr').length;
+function setTranslate(x, y, e) {
+    e.style.transform = "translate3d(" + x + "px, " + y + "px, 0)";
+}
 
-        console.log(next_n);
+function load_data(project_pk) {
+    $.getJSON('/label/list/' + project_pk.toString() + '/?format=json', function(data) {
+        // item labels, in order.
+        labels = data;
+  
+        $.getJSON('/similarity/list/' + project_pk.toString() + '/?format=json', function(data) {
+            comparisons = data;
 
-        // make that new row. 
-        var new_tr_string = "<tr><td><input id='id_labels-nnnn-id' type='hidden' name='labels-nnnn-id'><input id='id_labels-nnnn-project' type='hidden' name='labels-nnnn-project'><input id='id_labels-nnnn-name' type='text' name='labels-nnnn-name' maxlength='200'></td><td><input type='checkbox' name='labels-2-DELETE' id='id_labels-2-DELETE'></td></tr>";
-        new_tr_string = new_tr_string.replace(/nnnn/g, String(next_n));
-        $(new_tr_string).appendTo($('#label_table').find('tbody'));
+            // number of cells. 
+            var cells = labels.length;
+          
+            // pixel offset for labels.
+            var y_label_offset = 14;
+            var x_label_offset = 8;
+            
+            // class names for gray boxes here.
+            grays = ['rect_gray_0', 'rect_gray_1', 'rect_gray_2', 'rect_gray_3'];
+
+            // similarity scores for each item.
+            similarity = [];
+            for (var y = 0; y < labels.length; y++) {
+                for (var x = 0; x < labels.length; x++) {
+                    if (x == 0) {
+                        similarity.push([]);
+                    }
+                    similarity[y].push(get_comparison(comparisons, labels[y], labels[x]));
+                }
+            }
+
+            // save the x/y grid position of mousedown events. 
+            var mousedown_x = null;
+            var mousedown_y = null;
+
+            // save the label index for dragging. 
+            var label_index = null;
+            
+            var drag_active = false;
+            var drag_element = null;
+            var drag_element_index = null;
+            var drag_element_initial_x = null;
+            var drag_element_initial_y = null;
+            var drag_initial_x = null;
+            var drag_initial_y = null;
+            var drag_current_x = null;
+            var drag_current_y = null;
+            var drag_offset_x = null;
+            var drag_offset_y = null;
+
+            $('svg').attr('width', label_width + cells * grid);
+            $('svg').attr('height', label_width + cells * grid);
+            $('svg').attr('viewbox', -label_width.toString() + ' ' +
+                                     -label_width.toString() + ' ' +
+                                     (cells * grid).toString() + ' ' + 
+                                     (cells * grid).toString())
+
+            // add boxes.
+            for (var y = 0; y < cells; y++) {
+                for (var x = 0; x < cells; x++) {
+                    var id = 'rect_' + x + '_' + y;
+                    var r = make_element('rect', {'id': id, 'x': x * grid, 'y': y * grid, 'width': grid, 'height': grid});
+                    document.querySelector('svg').append(r);
+                }
+            }
+
+            // add horizontal grid lines.
+            for (var y = 0; y <= grid * cells; y += grid) {
+                var l = make_element('line', {
+                    'x1': 0,
+                    'y1': y,
+                    'x2': grid * cells,
+                    'y2': y,
+                    'stroke': '#aaa'
+                });
+                l.setAttribute('stroke-width', y == grid * cells ? 2 : 1);
+                document.querySelector('svg').append(l);
+            }
+            // add vertical grid lines. 
+            for (var x = 0; x <= grid * cells; x += grid) {
+                var l = make_element('line', {
+                    'x1': x, 
+                    'y1': 0, 
+                    'x2': x, 
+                    'y2': grid * cells, 
+                    'stroke': '#aaa'
+                });
+                l.setAttribute('stroke-width', x == grid * cells ? 2 : 1);
+                document.querySelector('svg').append(l);
+            }
+
+            // add labels.
+            for (var l = 0; l < labels.length; l++) {
+                var t = make_element('text', {
+                    'draggable': true,
+                    'id': 'y_' + labels[l],
+                    'x': -5, 
+                    'y': l * grid + y_label_offset, 
+                    'fill': 'black', 
+                    'text-anchor': 'end'
+                });
+                t.append(document.createTextNode(labels[l]));
+                //t.addEventListener('touchstart', dragstart, false);
+                //t.addEventListener('touchend', dragend, false);
+                //t.addEventListener('touchmove', drag, false);
+                //t.addEventListener('mousedown', dragstart, false);
+                //t.addEventListener('mouseup', dragend, false);
+                //t.addEventListener('mousemove', drag, false);
+                document.querySelector('svg').append(t);
+            
+                var t = make_element('text', {
+                    'draggable': true,
+                    'id': 'x_' + labels[l],
+                    'x': l * grid, 
+                    'y': x_label_offset, 
+                    'fill': 'black', 
+                    'transform': 'rotate(270, ' + l * grid + ', -5)'
+                });
+                t.append(document.createTextNode(labels[l]));
+                //t.addEventListener('touchstart', dragstart, false);
+                //t.addEventListener('touchend', dragend, false);
+                //t.addEventListener('touchmove', drag, false);
+                //t.addEventListener('mousedown', dragstart, false);
+                //t.addEventListener('mouseup', dragend, false);
+                //t.addEventListener('mousemove', drag, false);
+                document.querySelector('svg').append(t);
+            }
+
+            /*
+            document.querySelector('svg').addEventListener('click', function(e) {
+                var p = get_mouse_event_grid_coordinates(e);
+                if (!isNaN(p.x) && !isNaN(p.y) && p.x != p.y) {
+                    var s = Math.round(similarity[p.y][p.x] * grays.length) + 1;
+                    if (s >= grays.length) {
+                        s = 0;
+                    }
+                    s = s / grays.length;
+                    similarity[p.y][p.x] = s;
+                    similarity[p.x][p.y] = s;
+                    recolor_grid(labels);
+                } else {
+                    // var l = get_mouse_event_label_index(e);
+                    // reorder_labels(l, l < labels.length - 1 ? l + 1 : 0);
+                    // reposition_labels();
+                    // reorder_similarity(l, l < labels.length - 1 ? l + 1 : 0);
+                    // recolor_grid(labels);
+                }
+            });
+            */
+
+            // color in the grid.
+            recolor_grid(labels);
+        });
     });
-});
+}
+
+/*
+ * MAIN 
+ */
+
+var project_pk = 0;
+var path_parts = window.location.pathname.split('/')
+while (path_parts) {
+    project_pk = parseInt(path_parts.pop())
+    if (!isNaN(project_pk)) {
+        break;
+    }
+}
+load_data(project_pk);

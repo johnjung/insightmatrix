@@ -89,5 +89,5 @@ class Label(models.Model):
 class Similarity(models.Model):
     label_one = models.ForeignKey(Label, on_delete=models.CASCADE, related_name="similarity_one")
     label_two = models.ForeignKey(Label, on_delete=models.CASCADE, related_name="similarity_two")
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="similarity")
+    project = models.ForeignKey(Project, null=True, on_delete=models.CASCADE, related_name="similarity")
     score = models.FloatField()

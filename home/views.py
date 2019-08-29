@@ -1,9 +1,20 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import JsonResponse
 from django.views.generic import TemplateView
 from django.views.generic.list import ListView
 from .forms import ProjectForm, SimilarityForm
-from .models import Label, Project
+from .models import Label, Project, Similarity
+
+
+def label_list(request, project=None):
+    """Return the list of labels, in order. Always returns JSON for the
+    javascript front end. project is an integer, the pk.
+    """
+    label_list = []
+    for l in Project.objects.get(pk=project).labels.order_by('pk'):
+        label_list.append(l.name)
+    return JsonResponse(label_list, safe=False)
 
 
 def project_create(request):
@@ -78,9 +89,21 @@ def similarity_create(request, project=None):
 
 
 def similarity_list(request, project=None):
-    return render(request, 'home/similarity_list.html', {
-        'project': Project.objects.get(pk=project)
-    })
+    if 'format' in request.GET and request.GET['format'] == 'json':
+        labels = Project.objects.get(pk=project).labels.all().values_list('name', flat=True)
+        similarity_dict = {a: {b: 0.0 for b in labels} for a in labels}
+        # set diagonals to 3.0
+        for l in labels:
+            similarity_dict[l][l] = 3.0
+        # look up all other similarities in the db.
+        for s in Similarity.objects.filter(project__pk=project):
+            similarity_dict[s.label_one.name][s.label_two.name] = \
+            similarity_dict[s.label_two.name][s.label_one.name] = s.score
+        return JsonResponse(similarity_dict)
+    else:
+        return render(request, 'home/similarity_list.html', {
+            'project': Project.objects.get(pk=project)
+        })
 
 
 class HomePage(TemplateView):
